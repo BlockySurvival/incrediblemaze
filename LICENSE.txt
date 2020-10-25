@@ -1,0 +1,5 @@
+LGPLv2.1
+
+Copyright orwell
+
+see https://forum.minetest.net/viewtopic.php?t=16820
