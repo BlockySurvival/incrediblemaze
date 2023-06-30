@@ -25,7 +25,7 @@ local dirmap={
 }
 
 --all variables are in file scope, for functions to access them
-local bmin, bmax, emin, emax, data, area, at_node, pr_node, m_size_x, m_size_z, m_spaceprob
+local bmin, bmax, emin, emax, data, area, m_size_x, m_size_z, m_spaceprob
 
 local rint=function(m,n) return math.floor(math.random(m,n)+0.5) end
 
@@ -59,11 +59,11 @@ end
 
 local function run_cmd(name,param)
 	local t1=os.clock()
-	
+
 	if tonumber(param) then
 		math.randomseed(param)
 	end
-	
+
 	local wep1, wep2=worldedit.pos1[name], worldedit.pos2[name]
 	if not wep1 or not wep2 then
 		return false,"Please set both WE positions"
@@ -74,18 +74,18 @@ local function run_cmd(name,param)
 	end
 	m_size_x=math.floor((wep2.x-wep1.x)/2)
 	m_size_z=math.floor((wep2.z-wep1.z)/2)
-	
+
 	m_spaceprob = (m_size_x+m_size_z)/m_space_divider
-	
+
 	local vmanip = minetest.get_voxel_manip()
 	bmin, bmax = wep1, {x=wep1.x+2*m_size_x, y=wep2.y, z=wep1.z+2*m_size_z}
-	
+
 	minetest.chat_send_player(name, "Preparing generation of maze of size "..m_size_x.."x"..m_size_z.." between "..minetest.pos_to_string(bmin).." and "..minetest.pos_to_string(bmin))
-	
+
 	emin, emax = vmanip:read_from_map(bmin, bmax)
 	-- 1. create grid
 	data = vmanip:get_data()
-	
+
 	area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
 	local modx, modz = bmin.x%2, bmin.z%2
 	for y=bmin.y,bmax.y do
@@ -143,7 +143,7 @@ local function run_cmd(name,param)
 		while true do
 			local ne_node
 			local crossing_wall, add_space=false, (not space_added and rint(0,m_spaceprob)==0)
-			
+
 			ne_node = proceed(at_node, pr_node)
 			if get_edge(at_node, ne_node) then
 				break
@@ -162,7 +162,7 @@ local function run_cmd(name,param)
 			if add_space then
 				space_added=true
 			else
-				set_edge(at_node, ne_node, true, line)
+				set_edge(at_node, ne_node, true)
 			end
 			pr_node=at_node
 			at_node=ne_node
@@ -171,13 +171,13 @@ local function run_cmd(name,param)
 			end
 		end
 	end
-	
+
 	minetest.chat_send_player(name, "Generation completed, writing to map...")
 
 	vmanip:set_data(data)
 	vmanip:write_to_map()
 	vmanip:update_map()
-	
+
 	local t2=os.clock()
 	return true, "Generating maze completed in "..((t2-t1)*1000).."ms"
 end
