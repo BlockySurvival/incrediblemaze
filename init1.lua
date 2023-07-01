@@ -7,7 +7,7 @@ local function print_concat_table(a)
 	local str=""
 	local stra=""
 	for i=1,50 do
-		t=a[i]
+		local t=a[i]
 		if t==nil then
 			stra=stra.."nil "
 		else
@@ -44,16 +44,6 @@ end
 local c_air=minetest.get_content_id("air")
 local c_cobble=minetest.get_content_id("default:cobble")
 local c_dcobble=minetest.get_content_id("default:desert_cobble")
-local c_sand=minetest.get_content_id("default:sand")
-
-local c_wools={
-	minetest.get_content_id("wool:white"),
-	minetest.get_content_id("wool:red"),
-	minetest.get_content_id("wool:green"),
-	minetest.get_content_id("wool:blue"),
-	minetest.get_content_id("wool:yellow"),
-	minetest.get_content_id("wool:orange"),
-}
 
 local dirmap={
 	{z=1, x=0},
@@ -92,12 +82,7 @@ local function set_edge(p1, p2, wall, woolc)
 	local i=area:indexp(mtmed)
 	data[i]= wall and c_cobble or c_air
 end
-local function set_sand(p1, p2)
-	local mtn1, mtn2={x=2*p1.x, z=2*p1.z}, {x=2*p2.x, z=2*p2.z}
-	local mtmed={x=(mtn1.x+mtn2.x)/2, y=0, z=(mtn1.z+mtn2.z)/2}
-	local i=area:indexp(mtmed)
-	data[i]= c_sand
-end
+
 local function v_add(p1, p2)
 	return {x=p1.x+p2.x, z=p1.z+p2.z}
 end
@@ -105,14 +90,14 @@ end
 
 local function generate(name,param)
 	math.randomseed(param)
-	
+
 	local vmanip = minetest.get_voxel_manip()
 	bmin, bmax = {x=0, y=0, z=0}, {x=2*m_size_x, y=0, z=2*m_size_z}
 	emin, emax = vmanip:read_from_map(bmin, bmax)
 	dprint("Requested",bmin, bmax, " emerged",emin,emax)
 	-- 1. create grid
 	data = vmanip:get_data()
-	
+
 	area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
 	for x=bmin.x,bmax.x do
 		for z=bmin.z,bmax.z do
@@ -126,7 +111,7 @@ local function generate(name,param)
 			end
 		end
 	end
-	
+
 	for line=1,m_numlines do
 		--draw lines from one border to another
 		-- A select starting point
@@ -146,7 +131,7 @@ local function generate(name,param)
 			pr_node={x=at_node.x, z=m_size_z+1}
 		end
 		dprint("starting line at", at_node, pr_node)
-		local isstart, space_added=true, nil
+		local _, space_added=true, nil
 		local ownrte={}
 		-- B proceed nodes until edge
 		while true do
@@ -171,7 +156,6 @@ local function generate(name,param)
 				ne_node=prob[rint(1,#prob)]
 			end
 			dprint("proceeding to", ne_node, "from", at_node)
-			isstart=false
 			-- I check if any neighboring edge of ne_node is a wall
 			for eside=1,4 do
 				if get_edge(ne_node, v_add(ne_node, dirmap[eside])) then
@@ -207,7 +191,7 @@ local function generate(name,param)
 			end
 		end
 	end
-	
+
 	vmanip:set_data(data)
 	vmanip:write_to_map()
 	vmanip:update_map()
